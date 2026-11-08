@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   Users,
   FileBarChart,
+  MessageCircle,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Logo, LogoMarca } from '@/components/ui/Logo'
@@ -21,6 +22,11 @@ import { cn } from '@/lib/cn'
 import { BrandSplash, BRAND_SPLASH_MS } from '@/components/BrandSplash'
 
 const REMEMBER_KEY = 'localiza_remember_credentials'
+
+/** WhatsApp do suporte: (99) 99175-4232. */
+const SUPORTE_WHATSAPP_URL =
+  'https://wa.me/5599991754232?text=' +
+  encodeURIComponent('Olá! Preciso de ajuda com o Inventário de Caminhões Localiza.')
 
 const ORBIT_ICONS = [
   { Icon: LayoutDashboard, top: 8, left: 128 },
@@ -215,6 +221,21 @@ export function Login() {
                 )}
               </Button>
             </form>
+
+            <div className="mt-6 flex items-center gap-3">
+              <span className="h-px flex-1 bg-border/10" />
+              <span className="text-[11px] font-medium uppercase tracking-wider text-secondary/70">Precisa de ajuda?</span>
+              <span className="h-px flex-1 bg-border/10" />
+            </div>
+            <a
+              href={SUPORTE_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/30 text-sm font-medium text-primary transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/10 hover:border-primary/50 active:translate-y-0 active:scale-[0.98]"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Falar com o suporte no WhatsApp
+            </a>
           </div>
         </div>
 
