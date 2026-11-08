@@ -337,7 +337,7 @@ export function RegistrarEntrada() {
 
   // Helper para label com asterisco de obrigatório
   function Req() {
-    return <span className="ml-0.5 text-red-400">*</span>
+    return <span className="ml-0.5 text-accent">*</span>
   }
 
   return (

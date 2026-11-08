@@ -3,7 +3,7 @@
 // (#1c1c1c). Ordem fixa: não embaralhar (a ordem é o que garante a distinção
 // sob daltonismo).
 export const CHART_ENTRADA = '#3987e5'
-export const CHART_SAIDA = '#E23B2E' // vermelho = saída
+export const CHART_SAIDA = '#FC8226' // laranja da marca = saída
 
 export const CHART_CATEGORICAL = [
   '#3987e5', // azul

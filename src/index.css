@@ -5,17 +5,19 @@
 @layer base {
   :root {
     color-scheme: light;
-    --color-background: 244 244 245;
+    --color-background: 242 245 243;
     --color-surface: 255 255 255;
-    --color-surface-hover: 237 237 238;
+    --color-surface-hover: 234 240 236;
     --color-foreground: 24 24 27;
     --color-secondary: 107 114 128;
     --color-border: 24 24 27;
     --color-overlay: 24 24 27;
-    /* Cor de marca — verde Localiza. Pode ser trocada pela cor cadastrada na empresa, ver
-       EmpresaContext.tsx, que aplica a cor cadastrada em `companies.primary_color`. */
-    --color-primary: 0 155 77;
-    --color-primary-hover: 0 125 62;
+    /* Cores da marca Localiza Seminovos: verde #04662C e laranja #FC8226.
+       Outra empresa pode trocar o verde pela cor cadastrada em
+       `companies.primary_color` (ver EmpresaContext.tsx). */
+    --color-primary: 4 102 44;
+    --color-primary-hover: 3 82 35;
+    --color-accent: 252 130 38;
     /* Altura da barra de navegação do Android embaixo da tela. Alguns WebViews
        (visto em Xiaomi) devolvem env() = 0 mesmo desenhando o app por baixo da
        barra; o Capacitor injeta o valor real em --safe-area-inset-bottom. */
@@ -24,13 +26,16 @@
 
   html.dark {
     color-scheme: dark;
-    --color-background: 18 18 18;
-    --color-surface: 28 28 28;
-    --color-surface-hover: 36 36 36;
+    --color-background: 11 20 14;
+    --color-surface: 19 31 23;
+    --color-surface-hover: 27 42 32;
     --color-foreground: 255 255 255;
     --color-secondary: 154 154 154;
     --color-border: 255 255 255;
     --color-overlay: 255 255 255;
+    /* No escuro o verde da marca fica apagado; usa um tom mais vivo. */
+    --color-primary: 18 138 66;
+    --color-primary-hover: 12 115 54;
   }
 
   body {
@@ -53,6 +58,12 @@
 
   th {
     @apply uppercase;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: 'Poppins', 'Inter', ui-sans-serif, system-ui, sans-serif;
   }
 }
 
@@ -149,18 +160,18 @@ html:not(.dark) .glass-button:not(.glass-button-primary):hover {
 }
 
 .glass-button-primary {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.85), rgba(185, 28, 28, 0.95)) !important;
-  border-color: rgba(254, 202, 202, 0.4) !important;
+  background: linear-gradient(135deg, rgba(4, 102, 44, 0.9), rgba(3, 72, 31, 0.95)) !important;
+  border-color: rgba(187, 247, 208, 0.35) !important;
   box-shadow: 
     inset 0 1px 2px 0 rgba(255, 255, 255, 0.5),
-    0 4px 20px 0 rgba(239, 68, 68, 0.45) !important;
+    0 4px 20px 0 rgba(4, 102, 44, 0.45) !important;
 }
 
 .glass-button-primary:hover {
-  background: linear-gradient(135deg, rgba(248, 113, 113, 0.95), rgba(220, 38, 38, 1)) !important;
+  background: linear-gradient(135deg, rgba(18, 138, 66, 0.95), rgba(4, 102, 44, 1)) !important;
   box-shadow: 
     inset 0 1px 2px 0 rgba(255, 255, 255, 0.6),
-    0 8px 28px 0 rgba(239, 68, 68, 0.65) !important;
+    0 8px 28px 0 rgba(4, 102, 44, 0.65) !important;
 }
 
 .glass-button-shadow {

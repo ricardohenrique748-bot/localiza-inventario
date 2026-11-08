@@ -45,7 +45,7 @@ export function BottomNav() {
               )}>
                 <Icon className="h-5 w-5 shrink-0" />
                 {isActive && (
-                  <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
+                  <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-accent" />
                 )}
               </div>
               <span className="text-[8px] uppercase tracking-tight truncate max-w-full mt-0.5">
@@ -63,10 +63,10 @@ export function BottomNav() {
               signOut()
             }
           }}
-          className="flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-secondary/60 hover:text-red-400 active:scale-90 transition-all duration-150 cursor-pointer min-w-0"
+          className="flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-secondary/60 hover:text-primary active:scale-90 transition-all duration-150 cursor-pointer min-w-0"
           title="Sair da conta"
         >
-          <div className="flex items-center justify-center p-1 rounded-xl hover:bg-red-500/10 transition-all">
+          <div className="flex items-center justify-center p-1 rounded-xl hover:bg-primary/10 transition-all">
             <LogOut className="h-5 w-5 shrink-0" />
           </div>
           <span className="text-[8px] uppercase tracking-tight truncate max-w-full mt-0.5 font-semibold">

@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
-import { hexEscurecidoParaRgbString, hexParaRgbString } from '@/lib/color'
 import { useAuth } from './AuthContext'
 
 // Fase 1 do multi-empresa: a "empresa ativa" vem sempre do banco, resolvida
@@ -51,15 +50,13 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
 
   const empresas = useMemo(() => (empresaAtiva ? [empresaAtiva] : []), [empresaAtiva])
 
-  // Aplica a cor da empresa no sistema inteiro (botões, links ativos, etc.)
-  // via CSS var — ver --color-primary em src/index.css e tailwind.config.js.
-  // Sem empresa (ex.: tela de login), fica a cor padrão já definida no CSS.
+  // O sistema usa sempre o verde da Localiza definido em src/index.css (um tom
+  // para o tema claro e outro para o escuro). A cor cadastrada em
+  // `companies.primary_color` não é mais aplicada; limpa alguma que tenha
+  // ficado de versões anteriores.
   useEffect(() => {
-    if (!empresaAtiva?.cor) return
-    const rgb = hexParaRgbString(empresaAtiva.cor)
-    const rgbHover = hexEscurecidoParaRgbString(empresaAtiva.cor)
-    if (rgb) document.documentElement.style.setProperty('--color-primary', rgb)
-    if (rgbHover) document.documentElement.style.setProperty('--color-primary-hover', rgbHover)
+    document.documentElement.style.removeProperty('--color-primary')
+    document.documentElement.style.removeProperty('--color-primary-hover')
   }, [empresaAtiva?.cor])
 
   const setEmpresaAtiva = useCallback(

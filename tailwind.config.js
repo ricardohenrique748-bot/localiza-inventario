@@ -12,6 +12,7 @@ export default {
           DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
           hover: 'rgb(var(--color-primary-hover) / <alpha-value>)',
         },
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
         secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
         foreground: 'rgb(var(--color-foreground) / <alpha-value>)',
         border: 'rgb(var(--color-border) / <alpha-value>)',
@@ -24,6 +25,7 @@ export default {
         },
       },
       fontFamily: {
+        display: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         sans: [
           'Inter',
           'ui-sans-serif',

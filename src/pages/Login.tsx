@@ -12,7 +12,7 @@ import {
   FileBarChart,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { Logo } from '@/components/ui/Logo'
+import { Logo, LogoMarca } from '@/components/ui/Logo'
 import { Button } from '@/components/ui/Button'
 import { Input, Label, FieldError } from '@/components/ui/Input'
 import { isSupabaseConfigured } from '@/lib/supabase'
@@ -128,7 +128,7 @@ export function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="!bg-overlay/5 !border-overlay/15 backdrop-blur-sm transition-all duration-200 hover:!border-overlay/25 focus:!ring-2 focus:!ring-primary/60 focus:shadow-[0_0_0_6px_rgba(226,59,46,0.15)]"
+                  className="!bg-overlay/5 !border-overlay/15 backdrop-blur-sm transition-all duration-200 hover:!border-overlay/25 focus:!ring-2 focus:!ring-primary/60 focus:shadow-[0_0_0_6px_rgba(4,102,44,0.18)]"
                 />
               </div>
               <div>
@@ -146,7 +146,7 @@ export function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="!bg-overlay/5 !border-overlay/15 backdrop-blur-sm pr-11 transition-all duration-200 hover:!border-overlay/25 focus:!ring-2 focus:!ring-primary/60 focus:shadow-[0_0_0_6px_rgba(226,59,46,0.15)]"
+                    className="!bg-overlay/5 !border-overlay/15 backdrop-blur-sm pr-11 transition-all duration-200 hover:!border-overlay/25 focus:!ring-2 focus:!ring-primary/60 focus:shadow-[0_0_0_6px_rgba(4,102,44,0.18)]"
                   />
                   <button
                     type="button"
@@ -165,7 +165,7 @@ export function Login() {
                   className={cn(
                     'relative h-[18px] w-[18px] shrink-0 rounded-md border transition-all duration-150 group-hover:scale-110 group-active:scale-95',
                     rememberMe
-                      ? 'bg-primary border-primary shadow-[0_0_0_3px_rgba(226,59,46,0.2)]'
+                      ? 'bg-primary border-primary shadow-[0_0_0_3px_rgba(4,102,44,0.25)]'
                       : 'bg-overlay/5 border-overlay/20 group-hover:border-overlay/40',
                   )}
                 >
@@ -219,24 +219,29 @@ export function Login() {
         </div>
 
         {/* Right: brand panel */}
-        <div className="hidden md:flex relative flex-col justify-between overflow-hidden bg-gradient-to-br from-primary/85 via-primary-hover/85 to-[#1c1c1c]/85 backdrop-blur-2xl p-10 text-white">
+        <div className="hidden md:flex relative flex-col justify-between overflow-hidden bg-[#04662C] p-10 text-white">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute bottom-0 -left-10 h-64 w-64 rounded-full bg-black/20 blur-3xl" />
+            <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/[0.06] blur-3xl" />
+            <div className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-[#FC8226]/10 blur-3xl" />
           </div>
 
-          <h2 className="relative z-10 text-2xl font-bold leading-snug">
-            Controle total do seu <span className="text-status-warning">pátio</span>
-          </h2>
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <LogoMarca className="w-56" />
+            <span className="my-4 h-px w-28 bg-white/70" />
+            <h2 className="text-3xl font-semibold tracking-tight">Pesados</h2>
+            <p className="mt-2 text-sm text-white/80">
+              Controle total do seu <span className="font-semibold text-[#FC8226]">pátio</span>
+            </p>
+          </div>
 
-          <div className="relative z-10 flex flex-1 items-center justify-center py-8">
-            <div className="relative h-64 w-64">
+          <div className="relative z-10 flex flex-1 items-center justify-center py-6">
+            <div className="relative h-64 w-64 scale-90">
               <div className="absolute inset-0 rounded-full border border-white/20 animate-spin-slow" />
               <div className="absolute inset-8 rounded-full border border-dashed border-white/15 animate-spin-slow-reverse" />
 
               <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white shadow-lg flex items-center justify-center">
                 <span className="absolute inset-0 rounded-2xl bg-white/40 animate-ping" />
-                <Truck className="relative h-8 w-8 text-primary" />
+                <Truck className="relative h-8 w-8 text-[#04662C]" />
               </div>
 
               {ORBIT_ICONS.map(({ Icon, top, left }, i) => (
@@ -245,7 +250,7 @@ export function Login() {
                   className="absolute h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md flex items-center justify-center animate-float"
                   style={{ top, left, animationDelay: `${i * 0.4}s` }}
                 >
-                  <Icon className="h-[18px] w-[18px] text-primary" />
+                  <Icon className="h-[18px] w-[18px] text-[#04662C]" />
                 </div>
               ))}
             </div>
@@ -256,7 +261,7 @@ export function Login() {
               Entrada e saída de caminhões no pátio — fotos, KM e trajeto em um só lugar.
             </p>
             <div className="mt-4 flex items-center justify-center gap-1.5">
-              <span className="h-1.5 w-6 rounded-full bg-white/80" />
+              <span className="h-1.5 w-6 rounded-full bg-[#FC8226]" />
               <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
               <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
             </div>

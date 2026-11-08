@@ -29,7 +29,7 @@ create table if not exists companies (
   cnpj text,
   logo text,
   sistema_label text not null default 'INVENTÁRIO DE CAMINHÕES',
-  primary_color text not null default '#009B4D',
+  primary_color text not null default '#04662C',
   secondary_color text,
   observacoes text,
   status text not null default 'active' check (status in ('active', 'inactive')),
@@ -40,7 +40,7 @@ create table if not exists companies (
 
 -- Id fixo da Localiza: todo usuário novo entra nela (ver handle_new_auth_user).
 insert into companies (id, name, sistema_label, primary_color, observacoes, status)
-values ('81775591-b128-476e-b630-bc88f068c6ae', 'LOCALIZA', 'INVENTÁRIO DE CAMINHÕES', '#009B4D', 'Empresa principal', 'active')
+values ('81775591-b128-476e-b630-bc88f068c6ae', 'LOCALIZA', 'INVENTÁRIO DE CAMINHÕES', '#04662C', 'Empresa principal', 'active')
 on conflict (id) do nothing;
 
 create or replace function set_updated_at()
