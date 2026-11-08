@@ -1,0 +1,425 @@
+import { useState, type ReactNode } from 'react'
+import { useParams } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { LogOut, X, Pencil } from 'lucide-react'
+import { EditarMovimentacaoForm } from '@/pages/Movimentacoes'
+import { PageHeader } from '@/components/layout/Header'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Input, Label, FieldError } from '@/components/ui/Input'
+import { StatusManutencaoBadge } from '@/components/StatusManutencaoBadge'
+import { TrajetoAtualCard } from '@/components/TrajetoAtualCard'
+import { useVeiculoDetalhe } from '@/hooks/useVeiculos'
+import { registrarSaida } from '@/hooks/useMovimentacoes'
+import { useAuth } from '@/contexts/AuthContext'
+import { isAdminUsuario } from '@/lib/permissoes'
+import { formatDateTime, formatPermanencia } from '@/lib/format'
+import { urlMiniatura, aoFalharMiniatura } from '@/lib/thumb'
+import { tipoVeiculoLabel } from '@/lib/tipoVeiculo'
+import { extrairFotosExtras } from '@/lib/fotosExtras'
+import { GaleriaFotosModal, type FotoGaleria } from '@/components/GaleriaFotosModal'
+import type { Movimentacao, MovimentacaoComVeiculo } from '@/lib/types'
+
+const FOTOS_MOVIMENTACAO: { campo: keyof Movimentacao; label: string }[] = [
+  { campo: 'foto_frente_url', label: 'Frente' },
+  { campo: 'foto_lado_esquerdo_url', label: 'Lado esquerdo' },
+  { campo: 'foto_lado_direito_url', label: 'Lado direito' },
+  { campo: 'foto_traseira_url', label: 'Traseira' },
+  { campo: 'foto_painel_url', label: 'Painel' },
+]
+
+const saidaSchema = z.object({
+  motorista: z.string().optional(),
+  destino: z.string().optional(),
+  data: z.string().min(1, 'Informe a data'),
+  horario: z.string().min(1, 'Informe o horário'),
+  km: z.number().int('KM inválido').min(0, 'KM inválido').optional(),
+})
+
+type SaidaFormValues = z.infer<typeof saidaSchema>
+
+function hojeInputValue() {
+  const now = new Date()
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+  return now.toISOString().slice(0, 10)
+}
+
+function agoraInputValue() {
+  const now = new Date()
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+  return now.toISOString().slice(11, 16)
+}
+
+export function VeiculoDetalhe() {
+  const { id } = useParams<{ id: string }>()
+  const { perfil } = useAuth()
+  const isAdmin = isAdminUsuario(perfil)
+  const { veiculo, historico, loading, refetch } = useVeiculoDetalhe(id)
+  const [confirmandoSaida, setConfirmandoSaida] = useState(false)
+  const [erroSaida, setErroSaida] = useState<string | null>(null)
+  const [galeria, setGaleria] = useState<{ fotos: FotoGaleria[]; indice: number } | null>(null)
+  const [editando, setEditando] = useState<MovimentacaoComVeiculo | null>(null)
+  const [erroEdicao, setErroEdicao] = useState<string | null>(null)
+
+  const movimentacaoAtiva = historico.find((m) => m.status === 'no_patio')
+
+  // — Formulário de saída —
+  const {
+    register: regSaida,
+    handleSubmit: handleSaida,
+    formState: { errors: errSaida, isSubmitting: submittingSaida },
+  } = useForm<SaidaFormValues>({
+    resolver: zodResolver(saidaSchema),
+    values: {
+      motorista: movimentacaoAtiva?.motorista ?? '',
+      destino: movimentacaoAtiva?.destino ?? '',
+      data: hojeInputValue(),
+      horario: agoraInputValue(),
+      km: undefined as unknown as number,
+    },
+  })
+
+  async function onConfirmarSaida(values: SaidaFormValues) {
+    if (!movimentacaoAtiva) return
+    setErroSaida(null)
+    try {
+      await registrarSaida(movimentacaoAtiva.id, {
+        motorista: values.motorista,
+        destino: values.destino,
+        dataHoraSaida: new Date(`${values.data}T${values.horario}`).toISOString(),
+        kmSaida: values.km,
+      })
+      setConfirmandoSaida(false)
+      await refetch()
+    } catch (err) {
+      setErroSaida(err instanceof Error ? err.message : 'Não foi possível registrar a saída.')
+    }
+  }
+
+  if (loading) {
+    return <p className="text-sm text-secondary">Carregando…</p>
+  }
+
+  if (!veiculo) {
+    return <p className="text-sm text-secondary">Veículo não encontrado.</p>
+  }
+
+  return (
+    <div>
+      <PageHeader
+        title={veiculo.placa}
+        subtitle={`${veiculo.marca?.nome ?? ''} ${veiculo.modelo?.nome ?? ''}`}
+        back
+        actions={
+          movimentacaoAtiva && !confirmandoSaida ? (
+            <Button variant="danger" onClick={() => setConfirmandoSaida(true)}>
+              <LogOut className="h-4 w-4" />
+              Registrar saída
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {/* — Formulário de saída — */}
+      {movimentacaoAtiva && confirmandoSaida && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Saída de veículo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSaida(onConfirmarSaida)} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="saida-motorista">Motorista</Label>
+                  <Input id="saida-motorista" placeholder="Opcional" {...regSaida('motorista')} />
+                </div>
+                <div>
+                  <Label htmlFor="saida-destino">Destino</Label>
+                  <Input id="saida-destino" placeholder="Opcional" {...regSaida('destino')} />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <Label htmlFor="saida-data">Data</Label>
+                  <Input id="saida-data" type="date" {...regSaida('data')} />
+                  <FieldError message={errSaida.data?.message} />
+                </div>
+                <div>
+                  <Label htmlFor="saida-horario">Horário</Label>
+                  <Input id="saida-horario" type="time" {...regSaida('horario')} />
+                  <FieldError message={errSaida.horario?.message} />
+                </div>
+                <div>
+                  <Label htmlFor="saida-km">KM de saída</Label>
+                  <Input
+                    id="saida-km"
+                    type="number"
+                    placeholder="Opcional"
+                    {...regSaida('km', { valueAsNumber: true })}
+                  />
+                  <FieldError message={errSaida.km?.message} />
+                </div>
+              </div>
+              <FieldError message={erroSaida ?? undefined} />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setConfirmandoSaida(false)
+                    setErroSaida(null)
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="danger" disabled={submittingSaida}>
+                  {submittingSaida ? 'Registrando…' : 'Confirmar saída'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-3 mb-6">
+        {/* — Dados do veículo — */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Dados do veículo</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <Row label="Status">
+              <div className="flex items-center gap-2">
+                {movimentacaoAtiva ? <Badge tone="success">No pátio</Badge> : <Badge tone="neutral">Fora do pátio</Badge>}
+                <StatusManutencaoBadge status={movimentacaoAtiva?.status_manutencao} />
+              </div>
+            </Row>
+            <Row label="Tipo">{tipoVeiculoLabel(veiculo.tipo)}</Row>
+            <Row label="Situação">
+              <Badge tone={veiculo.operante ? 'success' : 'danger'}>
+                {veiculo.operante ? 'Operante' : 'Inoperante'}
+              </Badge>
+            </Row>
+            <Row label="Marca">{veiculo.marca?.nome}</Row>
+            <Row label="Modelo">{veiculo.modelo?.nome}</Row>
+            <Row label="Ano">{veiculo.ano || '—'}</Row>
+            <Row label="Cor">{veiculo.cor || '—'}</Row>
+            <Row label="Chassi">{veiculo.chassi || '—'}</Row>
+          </CardContent>
+        </Card>
+
+        {/* — Timeline da movimentação ativa — */}
+        {movimentacaoAtiva && (
+          <div className="lg:col-span-2">
+            <TrajetoAtualCard
+              movimentacao={movimentacaoAtiva}
+              disableHeaderActions={confirmandoSaida}
+              onAtualizar={refetch}
+              onEditarEntrada={isAdmin ? () => setEditando(movimentacaoAtiva) : undefined}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* — Histórico de todas as movimentações — */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico de movimentações</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {historico.length === 0 ? (
+            <p className="text-sm text-secondary">Sem histórico.</p>
+          ) : (
+            <div className="space-y-3">
+              {historico.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex flex-col gap-1 rounded-xl bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="text-sm uppercase">
+                    <p className="text-foreground">
+                      {m.veiculo?.placa ? `Placa: ${m.veiculo.placa} · ` : ''}
+                      Entrada: {formatDateTime(m.data_hora_entrada)}
+                      {m.patio?.nome ? ` · Pátio: ${m.patio.nome}` : ''}
+                      {m.motorista ? ` · ${m.motorista}` : ''}
+                      {m.km_entrada != null ? ` · KM entrada: ${m.km_entrada}` : ''}
+                    </p>
+                    <p className="text-secondary">
+                      Saída: {m.data_hora_saida ? formatDateTime(m.data_hora_saida) : '—'} · Permanência:{' '}
+                      {formatPermanencia(m.data_hora_entrada, m.data_hora_saida)}
+                      {m.destino ? ` · Destino: ${m.destino}` : ''}
+                      {m.km_saida != null ? ` · KM saída: ${m.km_saida}` : ''}
+                    </p>
+                    <p className="text-xs text-secondary mt-1">
+                      Registrado por: {m.usuario_entrada?.nome ?? '—'}
+                      {m.data_hora_saida ? ` · Saída registrada por: ${m.usuario_saida?.nome ?? '—'}` : ''}
+                    </p>
+                    {(() => {
+                      const { textoLimpo, fotosExtras } = extrairFotosExtras(m.observacoes)
+                      const temFotosPadrao = FOTOS_MOVIMENTACAO.some(({ campo }) => m[campo])
+                      const temFotos = temFotosPadrao || fotosExtras.length > 0
+                      // Todas as fotos da movimentação, na ordem das miniaturas,
+                      // para poder passar de uma para outra no modal.
+                      const fotosGaleria: FotoGaleria[] = [
+                        ...FOTOS_MOVIMENTACAO.flatMap(({ campo, label }) => {
+                          const url = m[campo] as string | null
+                          return url ? [{ url, label }] : []
+                        }),
+                        ...fotosExtras.map((extra, idx) => ({
+                          url: extra.url,
+                          label: extra.label || `Foto extra ${idx + 1}`,
+                        })),
+                      ]
+                      const abrirGaleria = (url: string) =>
+                        setGaleria({
+                          fotos: fotosGaleria,
+                          indice: Math.max(0, fotosGaleria.findIndex((f) => f.url === url)),
+                        })
+
+                      return (
+                        <>
+                          {textoLimpo && <p className="text-secondary mt-1">Obs: {textoLimpo}</p>}
+
+                          {temFotos && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {FOTOS_MOVIMENTACAO.map(({ campo, label }) => {
+                                const url = m[campo] as string | null
+                                if (!url) return null
+                                return (
+                                  <button
+                                    key={campo}
+                                    type="button"
+                                    onClick={() => abrirGaleria(url)}
+                                    className="shrink-0"
+                                    aria-label={`Ampliar foto — ${label}`}
+                                  >
+                                    <img
+                                      src={urlMiniatura(url, 128)}
+                                      onError={aoFalharMiniatura(url)}
+                                      alt={label}
+                                      loading="lazy"
+                                      decoding="async"
+                                      width={64}
+                                      height={64}
+                                      className="h-16 w-16 rounded-lg object-cover border border-border/10 hover:opacity-80"
+                                    />
+                                  </button>
+                                )
+                              })}
+
+                              {fotosExtras.map((extra, idx) => (
+                                <button
+                                  key={`extra-${idx}-${extra.url}`}
+                                  type="button"
+                                  onClick={() => abrirGaleria(extra.url)}
+                                  className="shrink-0 relative group"
+                                  aria-label={`Ampliar ${extra.label || `Foto extra ${idx + 1}`}`}
+                                >
+                                  <img
+                                    src={urlMiniatura(extra.url, 128)}
+                                    onError={aoFalharMiniatura(extra.url)}
+                                    alt={extra.label || `Foto extra ${idx + 1}`}
+                                    loading="lazy"
+                                    decoding="async"
+                                    width={64}
+                                    height={64}
+                                    className="h-16 w-16 rounded-lg object-cover border border-primary/40 hover:opacity-80 ring-1 ring-primary/30"
+                                  />
+                                  <span className="absolute bottom-0.5 left-0.5 right-0.5 text-[7px] font-bold text-center bg-black/70 text-white rounded px-0.5 truncate">
+                                    {extra.label || `+${idx + 1}`}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {m.status === 'no_patio' ? (
+                      <Badge tone="success">No pátio</Badge>
+                    ) : (
+                      <Badge tone="neutral">Saiu</Badge>
+                    )}
+                    <StatusManutencaoBadge status={m.status_manutencao} />
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => setEditando(m)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg glass-btn text-secondary hover:text-foreground"
+                        aria-label="Editar lançamento"
+                        title="Editar lançamento"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
+      {/* — Edição de lançamento (só admin) — */}
+      {isAdmin && editando && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setEditando(null)}
+        >
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-base font-semibold text-foreground">
+                Editar lançamento — {editando.veiculo?.placa ?? veiculo?.placa}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditando(null)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-secondary hover:text-foreground"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            {erroEdicao && <p className="mb-3 text-sm text-status-danger">{erroEdicao}</p>}
+            <EditarMovimentacaoForm
+              key={editando.id}
+              movimentacao={editando}
+              onCancel={() => setEditando(null)}
+              onSalvo={async () => {
+                setEditando(null)
+                setErroEdicao(null)
+                await refetch()
+              }}
+              onErro={setErroEdicao}
+            />
+          </Card>
+        </div>
+      )}
+
+      {/* — Modal de fotos (passa entre todas as fotos da movimentação) — */}
+      {galeria && (
+        <GaleriaFotosModal
+          fotos={galeria.fotos}
+          indiceInicial={galeria.indice}
+          onClose={() => setGaleria(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between border-b border-border/5 py-1.5 last:border-0">
+      <span className="text-secondary">{label}</span>
+      <span className="text-foreground font-medium">{children}</span>
+    </div>
+  )
+}

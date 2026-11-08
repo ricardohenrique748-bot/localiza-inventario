@@ -1,0 +1,107 @@
+// @ts-nocheck — esta função roda em Deno (Supabase Edge Functions), não em Node.js.
+import { createClient } from 'jsr:@supabase/supabase-js@2'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+interface ResetSenhaBody {
+  id: string
+  senha?: string
+}
+
+function jsonResponse(body: unknown, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
+  }
+
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader) {
+    return jsonResponse({ error: 'Não autenticado.' }, 401)
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+  // Verifica quem está chamando
+  const callerClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  })
+  const { data: callerData, error: callerError } = await callerClient.auth.getUser()
+  if (callerError || !callerData.user) {
+    return jsonResponse({ error: 'Não autenticado.' }, 401)
+  }
+
+  const adminClient = createClient(supabaseUrl, serviceRoleKey)
+
+  // Apenas admins podem resetar senhas
+  const { data: callerPerfil, error: perfilError } = await adminClient
+    .from('usuarios')
+    .select('nivel, company_id, is_master_admin')
+    .eq('id', callerData.user.id)
+    .single()
+
+  if (perfilError || callerPerfil?.nivel !== 'admin') {
+    return jsonResponse({ error: 'Apenas administradores podem fazer isso.' }, 403)
+  }
+
+  let body: ResetSenhaBody
+  try {
+    body = await req.json()
+  } catch {
+    return jsonResponse({ error: 'Corpo da requisição inválido.' }, 400)
+  }
+
+  const { id } = body
+  if (!id) {
+    return jsonResponse({ error: 'ID do usuário é obrigatório.' }, 400)
+  }
+
+  // Nunca confia no company_id vindo do cliente: confere no banco que o
+  // usuário alvo é da mesma empresa de quem está chamando, a menos que
+  // quem chama seja master admin.
+  if (!callerPerfil.is_master_admin) {
+    const { data: alvoPerfil, error: alvoError } = await adminClient
+      .from('usuarios')
+      .select('company_id')
+      .eq('id', id)
+      .single()
+    if (alvoError || !alvoPerfil || alvoPerfil.company_id !== callerPerfil.company_id) {
+      return jsonResponse({ error: 'Usuário não encontrado nesta empresa.' }, 404)
+    }
+  }
+
+  // Senha definida ou padrão 123456
+  const senhaTemporaria = (body.senha && body.senha.trim().length >= 6)
+    ? body.senha.trim()
+    : '123456'
+
+  // Atualiza a senha no Auth
+  const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(id, {
+    password: senhaTemporaria,
+  })
+  if (updateAuthError) {
+    return jsonResponse({ error: updateAuthError.message }, 400)
+  }
+
+  // Marca que o usuário deve trocar a senha no próximo login
+  const { error: updatePerfilError } = await adminClient
+    .from('usuarios')
+    .update({ deve_trocar_senha: true })
+    .eq('id', id)
+
+  if (updatePerfilError) {
+    return jsonResponse({ error: updatePerfilError.message }, 400)
+  }
+
+  return jsonResponse({ senhaTemporaria }, 200)
+})

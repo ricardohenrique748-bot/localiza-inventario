@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo-localiza.png" />
+    <link rel="apple-touch-icon" href="/logo-localiza.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#121212" />
+    <meta name="description" content="Localiza — Inventário de caminhões: controle de entrada e saída de veículos no pátio." />
+    <title>Localiza — Inventário de Caminhões</title>
+    <script>
+      (function () {
+        if (localStorage.getItem('localiza_theme') !== 'light') {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
