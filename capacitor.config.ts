@@ -7,14 +7,14 @@ const config: CapacitorConfig = {
   plugins: {
     LocalNotifications: {
       smallIcon: 'ic_stat_notification',
-      iconColor: '#009B4D',
+      iconColor: '#04662C',
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
       launchAutoHide: false,
-      backgroundColor: '#009B4D',
+      backgroundColor: '#04662C',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
