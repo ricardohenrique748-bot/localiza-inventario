@@ -50,6 +50,12 @@ export function Login() {
 
   const from = (location.state as { from?: string } | null)?.from ?? '/'
 
+  // Sem barra de rolagem no login (ainda rola com mouse/toque em tela muito baixa).
+  useEffect(() => {
+    document.documentElement.classList.add('sem-barra-rolagem')
+    return () => document.documentElement.classList.remove('sem-barra-rolagem')
+  }, [])
+
   useEffect(() => {
     const saved = localStorage.getItem(REMEMBER_KEY)
     if (saved) {
@@ -96,7 +102,7 @@ export function Login() {
   }
 
   return (
-    <div className="relative min-h-svh flex items-center justify-center bg-background px-4 py-10 overflow-hidden">
+    <div className="relative min-h-svh flex items-center justify-center bg-background px-4 py-4 overflow-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-primary/30 blur-3xl animate-blob" />
         <div
@@ -111,10 +117,10 @@ export function Login() {
 
       <div className="relative w-full max-w-sm md:max-w-4xl mx-auto grid md:grid-cols-2 rounded-3xl border border-border/10 overflow-hidden animate-fade-in-up shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
         {/* Left: form */}
-        <div className="flex flex-col p-8 sm:p-10 md:p-12 bg-surface">
+        <div className="flex flex-col px-8 py-7 sm:px-10 md:px-12 md:py-8 bg-surface">
           <div className="flex-1 flex flex-col justify-center w-full max-w-xs mx-auto">
-            <div className="mb-8 flex justify-center animate-scale-in">
-              <Logo size="lg" stacked />
+            <div className="mb-6 flex justify-center animate-scale-in">
+              <Logo size="lg" stacked className="[&>img]:h-16 [&>img]:w-16 [&>div:first-child]:h-16 [&>div:first-child]:w-16" />
             </div>
 
             {!isSupabaseConfigured && (
@@ -222,7 +228,7 @@ export function Login() {
               </Button>
             </form>
 
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-5 flex items-center gap-3">
               <span className="h-px flex-1 bg-border/10" />
               <span className="text-[11px] font-medium uppercase tracking-wider text-secondary/70">Precisa de ajuda?</span>
               <span className="h-px flex-1 bg-border/10" />
@@ -231,7 +237,7 @@ export function Login() {
               href={SUPORTE_WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/30 text-sm font-medium text-primary transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/10 hover:border-primary/50 active:translate-y-0 active:scale-[0.98]"
+              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/30 text-sm font-medium text-primary transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/10 hover:border-primary/50 active:translate-y-0 active:scale-[0.98]"
             >
               <MessageCircle className="h-4 w-4" />
               Falar com o suporte no WhatsApp
@@ -240,23 +246,23 @@ export function Login() {
         </div>
 
         {/* Right: brand panel */}
-        <div className="hidden md:flex relative flex-col justify-between overflow-hidden bg-[#04662C] p-10 text-white">
+        <div className="hidden md:flex relative flex-col justify-between overflow-hidden bg-[#04662C] px-10 py-8 text-white">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/[0.06] blur-3xl" />
             <div className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-[#FC8226]/10 blur-3xl" />
           </div>
 
           <div className="relative z-10 flex flex-col items-center text-center">
-            <LogoMarca className="w-56" />
-            <span className="my-4 h-px w-28 bg-white/70" />
+            <LogoMarca className="w-48" />
+            <span className="my-3 h-px w-28 bg-white/70" />
             <h2 className="text-3xl font-semibold tracking-tight">Pesados</h2>
             <p className="mt-2 text-sm text-white/80">
               Controle total do seu <span className="font-semibold text-[#FC8226]">pátio</span>
             </p>
           </div>
 
-          <div className="relative z-10 flex flex-1 items-center justify-center py-6">
-            <div className="relative h-64 w-64 scale-90">
+          <div className="relative z-10 flex flex-1 items-center justify-center py-2">
+            <div className="relative h-64 w-64 scale-[0.8] -my-6">
               <div className="absolute inset-0 rounded-full border border-white/20 animate-spin-slow" />
               <div className="absolute inset-8 rounded-full border border-dashed border-white/15 animate-spin-slow-reverse" />
 

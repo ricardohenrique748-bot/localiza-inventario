@@ -49,6 +49,14 @@
     min-height: 100svh;
   }
 
+  /* Tela de login: esconde a barra de rolagem da página (ver Login.tsx). */
+  html.sem-barra-rolagem {
+    scrollbar-width: none;
+  }
+  html.sem-barra-rolagem::-webkit-scrollbar {
+    display: none;
+  }
+
   input,
   select,
   textarea,
